@@ -1,0 +1,20 @@
+---
+general:
+  upstreamInfo:
+    protocol: "https"
+    domainName: "actrss-analyticsecurityweb-rest-prod.faas.pde.spratingsvpc.com"
+    port: 443
+    basePath: "/test/123"
+    supportedProtocolExceptOption: "GET"
+    supportOptions: true
+    response_buffering: true
+kongplugin:
+  rate_limiting_advanced:
+    config:
+      limit:
+      - 200
+  acl:
+    config:
+      allow:
+      - "APIM"
+      - "CE"

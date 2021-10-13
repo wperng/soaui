@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+    <head>
+        <title>SOAUI - API Onbording Form</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>
+            .col-form-label {
+                font-weight: bold;
+            }
+        </style>
+        <!-- CSS only -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous" />
+        <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+        <script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+        <script>
+            // jQuery functions to hide and show the div
+            $(document).ready(function () {
+                $("input[name=httpProtocol]")
+                    .change(function () {
+                        var value = $("input[name=httpProtocol]:checked").val();
+                        if (value == "REST") {
+                            $("#oamAuth-option").hide();
+                            $("#httpmethod-block").show();
+                            $("#allowedContextPaths-block").show();
+                            $("#blockedContextPaths-block").show();
+                            $("#ratelimit-block").show();
+                            $("#httpMethods-GET").prop("checked", false);
+                            $("#httpMethods-POST").prop("checked", false);
+                            $("#httpMethods-PUT").prop("checked", false);
+                            $("#httpMethods-OPTIONS").prop("checked", false);
+                            $("#httpMethods-DELETE").prop("checked", false);
+                        }
+
+                        if (value == "SOAP") {
+                            $("#oamAuth-option").show();
+                            $("#httpmethod-block").hide();
+                            $("#allowedContextPaths-block").hide();
+                            $("#blockedContextPaths-block").hide();
+                            $("#ratelimit-block").hide();
+                            $("#httpMethods-GET").prop("checked", true);
+                            $("#httpMethods-POST").prop("checked", true);
+                            $("#httpMethods-PUT").prop("checked", true);
+                            $("#httpMethods-OPTIONS").prop("checked", true);
+                            $("#httpMethods-DELETE").prop("checked", true);
+                        }
+                    })
+                    .change();
+
+                $("input[name=apiZone]")
+                    .change(function () {
+                        var value = $("input[name=apiZone]:checked").val();
+                        if (value == "apizone-external") {
+                            $("#rateLimit").val("300");
+                            /*
+                            $("#sienv-option").hide();
+                            $("#hotfixenv-option").hide();
+                            $("#prodenv-option").hide();
+                            $("#drenv-option").hide();
+                            $("#dmzalpha-option").show();
+                            $("#dmzprod-option").show();
+                            $("#dmzdr-option").show();
+                            */
+                        }
+
+                        if (value == "apizone-dmz") {
+                        	$("#rateLimit").val("300");
+                        	/*
+                        	$("#sienv-option").hide();
+                            $("#hotfixenv-option").hide();
+                            $("#prodenv-option").hide();
+                            $("#drenv-option").hide();
+                            $("#dmzalpha-option").show();
+                            $("#dmzprod-option").show();
+                            $("#dmzdr-option").show();
+                            */
+                        }
+
+                        if (value == "apizone-internal") {
+                        	$("#rateLimit").val("-1");
+                        	/*
+                        	$("#sienv-option").show();
+                            $("#hotfixenv-option").show();
+                            $("#prodenv-option").show();
+                            $("#drenv-option").show();
+                            $("#dmzalpha-option").hide();
+                            $("#dmzprod-option").hide();
+                            $("#dmzdr-option").hide();
+                            */
+                        }
+                    })
+                    .change();
+                
+                $("input[name=authentications]")
+                .change(function () {
+                    var value = $("input[name=authentications]:checked").val();
+                    if (value == "oauth") {
+                        $("#oauthgroup-block").show();
+                    }else{
+                    	 $("#oauthgroup-block").hide()
+                    }
+                })
+                .change();
+              //TODO: add field to take apigee name
+            });
+            
+            $(function() {
+                $( "#cmdbRecordName" ).autocomplete({
+                   source: "https://ratings-priv-aws-east.dev.api.spglobal.com:9001/ratings/william/cmdbsearchapi/default?department=Ratings&sysparm_fields=name,u_application_support_group&sysparm_limit=20&sysparm_query=nameISNOTEMPTY^operational_status!=9^u_environmentISEMPTY",
+                   minLength: 2
+                });
+             });
+            
+            //https://spglobal.service-now.com/api/now/table/cmdb_ci_service?department=Ratings&sysparm_fields=name,u_application_support_group&sysparm_limit=20&sysparm_query=nameISNOTEMPTY^operational_status!=9^u_environmentISEMPTY
+            //https://spglobal.service-now.com/api/now/table/cmdb_ci_service?name=ABCP EXPLORER&sysparm_fields=name,u_application_support_group
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <h1>API Onboarding Form</h1>
+            <hr />
+            <form autocomplete="off" th:action="@{/protected/processapionboardform}" th:object="${apionboardform}" method="post">
+                <div class="alert alert-danger" th:if="${#fields.hasAnyErrors()}">
+                    <h6 class="alert-heading">All errors:</h6>
+                    <ul>
+                        <li th:each="err : ${#fields.allErrors()}" th:text="${err}" />
+                    </ul>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="cmdbRecordName" class="col-form-label">CMDB Record Name</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="cmdbRecordName" th:field="*{cmdbRecordName}" placeholder="CMDB Record Name" />
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="shortName" class="col-form-label">Abbreviated Team Name</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="shortName" th:field="*{shortTeamName}" placeholder="Abbreviated Team Name" />
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="scrumTeamEmails" class="col-form-label">Scrum Team Emails</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="scrumTeamEmails" th:field="*{scrumTeamEmails}" placeholder="Scrum Team Emails" />
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="majorContactEmail" class="col-form-label">Primary Contact Email</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="majorContactEmail" th:field="*{majorContactEmail}" placeholder="Primary Contact Email" />
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="httpProtocol" class="col-form-label">HTTP Protocol Type</label>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <input type="radio" class="form-check-input" id="httpProtocol-rest" value="REST" th:field="*{httpProtocol}" />
+                                <label class="form-check-label" for="httpProtocol-rest">REST</label>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="radio" class="form-check-input" id="httpProtocol-soap" value="SOAP" th:field="*{httpProtocol}" /> 
+                                <label class="form-check-label" for="httpProtocol-soap">SOAP</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label class="col-form-label">API Zone</label>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <input type="radio" class="form-check-input" id="apizone-internal" value="apizone-internal" th:field="*{apiZone}" />
+                                <label for="apizone-internal">Internal</label>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="radio" class="form-check-input" id="apizone-dmz" value="apizone-dmz" th:field="*{apiZone}" />
+                                <label for="apizone-dmz" class="form-check-label">DMZ</label>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="radio" class="form-check-input" id="apizone-external" value="apizone-external" th:field="*{apiZone}" /> 
+                                <label for="apizone-external" class="form-check-label">External</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="apiName" class="col-form-label">API Name</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="apiName" placeholder="API Name" />
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="targetURL" class="col-form-label">Target URL in Dev</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="targetURL" placeholder="Target URL in Dev" th:field="*{targetURL}" />
+                    </div>
+                </div>
+                
+                <div class="row mt-3" id="authentication-block">
+                    <div class="col-md-4">
+                        <label class="col-form-label">Authentication Type</label>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <input type="checkbox" class="form-check-input" id="defaultAuth" value="default" th:field="*{authentications}" />
+                                <label for="defaultAuth">No Auth</label>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="checkbox" class="form-check-input" id="basicAuth" value="basic" th:field="*{authentications}" />
+                                <label class="form-check-label" for="basicAuth">Basic</label>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="checkbox" class="form-check-input" id="oauthAuth" value="oauth" th:field="*{authentications}" />
+                                <label class="form-check-label" for="oauthAuth">OAuth</label>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="checkbox" class="form-check-input" id="snljwtAuth" value="snljwt" th:field="*{authentications}" />
+                                <label class="form-check-label" for="snljwtAuth">SNLJWT</label>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="checkbox" class="form-check-input" id="ldapAuth" value="ldap" th:field="*{authentications}" />
+                                <label class="form-check-label" for="ldapAuth">LDAP</label>
+                            </div>
+                            <div class="col-md-2" id="oamAuth-option">
+                                <input type="checkbox" class="form-check-input" id="oamAuth" value="oam" th:field="*{authentications}" />
+                                <label class="form-check-label" for="oamAuth">OAM</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3" id="oauthgroup-block">
+                    <div class="col-md-4">
+                        <label for="oauthGroups" class="col-form-label">OAuth Groups</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="oauthGroups" placeholder="OAuth Groups (comma separated list)" th:field="*{oauthGroups}" />
+                    </div>
+                </div>
+                <div class="row mt-3" id="httpmethod-block">
+                    <div class="col-md-4">
+                        <label class="col-form-label">Supported HTTP Methods</label>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <input type="checkbox" class="form-check-input" id="httpMethods-GET"  value="GET" th:field="*{httpMethods}" /> 
+                                <label for="httpMethods-GET">GET</label>
+                            </div>
+                            <div class="col-md-2" id="put-option">
+                                <input type="checkbox" class="form-check-input" id="httpMethods-PUT"  value="PUT" th:field="*{httpMethods}" /> 
+                                <label class="form-check-label" for="httpMethods-PUT">PUT</label>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="checkbox" class="form-check-input" id="httpMethods-POST" value="POST" th:field="*{httpMethods}" /> 
+                                <label class="form-check-label" for="httpMethods-POST">POST</label>
+                            </div>
+                            <div class="col-md-2" id="options-option">
+                                <input type="checkbox" class="form-check-input" id="httpMethods-OPTIONS" value="OPTIONS" th:field="*{httpMethods}" />
+                                <label class="form-check-label" for="httpMethods-OPTIONS">OPTIONS</label>
+                            </div>
+                            <div class="col-md-2" id="delete-option">
+                                <input type="checkbox" class="form-check-input" id="httpMethods-DELETE" value="DELETE" th:field="*{httpMethods}" /> 
+                                <label class="form-check-label" for="httpMethods-DELETE">DELETE</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 
+                 <div class="row mt-3" id="httpmethod-block">
+                    <div class="col-md-4">
+                        <label class="col-form-label">Supported Environments</label>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-2" id="devenv-option">
+                                <input type="checkbox" class="form-check-input" id="enviornment-dev"  value="dev" th:field="*{environments}" /> 
+                                <label for="enviornment-dev">DEV</label>
+                            </div>
+                            <div class="col-md-2" id="sienv-option">
+                                <input type="checkbox" class="form-check-input" id="enviornment-si"  value="si" th:field="*{environments}" /> 
+                                <label class="form-check-label" for="enviornment-si">SI</label>
+                            </div>
+                            <div class="col-md-2"  id="qaenv-option">
+                                <input type="checkbox" class="form-check-input" id="enviornment-qa" value="qa" th:field="*{environments}" /> 
+                                <label class="form-check-label" for="enviornment-qa">QA</label>
+                            </div>
+                            <div class="col-md-2" id="uatenv-option">
+                                <input type="checkbox" class="form-check-input" id="enviornment-uat" value="uat" th:field="*{environments}" />
+                                <label class="form-check-label" for="enviornment-uat">UAT</label>
+                            </div>
+                            <div class="col-md-2" id="hotfixenv-option">
+                                <input type="checkbox" class="form-check-input" id="enviornment-hf" value="hotfix" th:field="*{environments}" /> 
+                                <label class="form-check-label" for="enviornment-hf">HOTFIX</label>
+                            </div>
+                            <div class="col-md-2" id="prodenv-option">
+                                <input type="checkbox" class="form-check-input" id="enviornment-prod" value="prod" th:field="*{environments}" /> 
+                                <label class="form-check-label" for="enviornment-prod">PROD</label>
+                            </div>
+                            <div class="col-md-2" id="drenv-option">
+                                <input type="checkbox" class="form-check-input" id="enviornment-dr" value="dr" th:field="*{environments}" /> 
+                                <label class="form-check-label" for="enviornment-dr">DR</label>
+                            </div>
+                            <div class="col-md-2" id="dmzalpha-option">
+                                <input type="checkbox" class="form-check-input" id="enviornment-dmz-alpha" value="dmz-alpha" th:field="*{environments}" /> 
+                                <label class="form-check-label" for="enviornment-dmz-alpha">DMZ-alpha</label>
+                            </div>
+                            <div class="col-md-2" id="dmzprod-option">
+                                <input type="checkbox" class="form-check-input" id="enviornment-dmz-prod" value="dmz-prod" th:field="*{environments}" /> 
+                                <label class="form-check-label" for="enviornment-dmz-prod">DMZ Prod</label>
+                            </div>
+                            <div class="col-md-2" id="dmzdr-option">
+                                <input type="checkbox" class="form-check-input" id="enviornment-dmz-dr" value="dmz-dr" th:field="*{environments}" /> 
+                                <label class="form-check-label" for="enviornment-dmz-dr">dmz-dr</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 -->
+                <div class="row mt-3" id="ratelimit-block">
+                    <div class="col-md-4">
+                        <label for="rateLimit" class="col-form-label">Rate Limit (req/min)</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="rateLimit" title="Max value is 300 req/min" th:field="*{rateLimit}" />
+                    </div>
+                </div>
+                <div class="row mt-3" id="timeout-block">
+                    <div class="col-md-4">
+                        <label for="timeout" class="col-form-label">Timeout (sec)</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="timeOut" title="Max value is 120 seconds" th:field="*{timeout}" />
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label class="col-form-label">Buffering Control</label>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-6"><input type="checkbox" class="form-check-input" id="enableBufferOn-request" value="request" th:field="*{enableBufferOn}" />
+                            <label for="enableBufferOn-request">On Request</label></div>
+                            <div class="col-md-6">
+                                <input type="checkbox" class="form-check-input" id="enableBufferOn-reponse" value="reponse" th:field="*{enableBufferOn}" /> 
+                                <label class="form-check-label" for="enableBufferingOn-response">On Response</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="inputTeamShortName" class="col-form-label">Log Control</label>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="checkbox" class="form-check-input" id="enableLogOn-request" value="request" th:field="*{enableLogOn}" />
+                                <label for="enableLogOn-request">On Request</label>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="checkbox" class="form-check-input" id="enableLogOn-response" value="reponse" th:field="*{enableLogOn}" />
+                                <label class="form-check-label" for="enableLogOn-response">On Response</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="specURL" class="col-form-label">WSDL/WADL URL</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="specURL" placeholder="WSDL/WADL URL" th:field="*{enableLogOn}" />
+                    </div>
+                </div>
+                <div class="row mt-3" id="allowedContextPaths-block">
+                    <div class="col-md-4">
+                        <label for="allowedContextPath" class="col-form-label">Allow Context Path</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="allowedContextPath" placeholder="Allowed Context Path(comma separated list)" th:field="*{allowedContextPaths}" />
+                    </div>
+                </div>
+                <div class="row mt-3" id="blockedContextPaths-block">
+                    <div class="col-md-4">
+                        <label for="blockedContextPath" class="col-form-label">Restricted Context Path</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="blockedContextPath" placeholder="Restricted Context Path(comma separated list)" th:field="*{blockedContextPaths}" />
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="ipWhiteList" class="col-form-label">IP White List</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="ipWhiteList" placeholder="IP white list (comma separated list)" th:field="*{ipWhiteList}" />
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="targetCredential" class="col-form-label">Target Credential</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="targetCredential" placeholder="Target Credential (Base 64 encoded)" th:field="*{targetCredential}" />
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="consumerShortTeamNames" class="col-form-label">Consumer Short Teams</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="consumerShortTeamNames" placeholder="Consumer Short Names (comma separated list)" />
+                    </div>
+                </div>
+                <hr />
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="exampleInputEmail1" class="col-form-label">ADO Repository Name</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="exampleInputEmail1" placeholder="ADO Repository" />
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="exampleInputEmail1" class="col-form-label">ADO Password</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="password" class="form-control" id="exampleInputEmail1" placeholder="ADO Password" />
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="exampleInputEmail1" class="col-form-label">Password for SOA POC Repo</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="exampleInputEmail1" placeholder="Password for SOA POC Repo" />
+                    </div>
+                </div>
+                <hr />
+                <div class="row mt-3 mb-5">
+                    <div class="form-group d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary btn-lg">Submit</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </body>
+</html>
