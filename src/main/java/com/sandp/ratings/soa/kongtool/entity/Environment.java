@@ -6,8 +6,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "KT_KONGENV")
-public class KongEnv {
+@Table(name = "KT_ENVIRONMENT")
+public class Environment {
     
     @Id
     @Column(name = "ID", length=50)
